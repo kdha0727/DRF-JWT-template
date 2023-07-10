@@ -1,0 +1,66 @@
+"""
+production settings module.
+you should implement SECRET_KEY, ALLOWED_HOSTS, and DATABASES in `BASE_DIR / secret.json` file.
+
+Make json template by `python -m config.settings.prod`
+
+secret.json example using mysql database:
+```
+{
+  "ALLOWED_HOSTS": [
+    "{ipv4-address}",
+    "{your-domain-name}"
+  ],
+  "SECRET_KEY" : "{secret-key}",
+  "DATABASES": {
+    "default": {
+      "ENGINE": "django.db.backends.mysql",
+      "NAME": "{database-name}",
+      "USER": "{database-account-username}",
+      "PASSWORD": "{database-account-password}",
+      "HOST": "{database-host-address}",
+      "PORT": "3306"
+    }
+  }
+}
+```
+"""
+
+from .base import *
+
+
+SECRET_KEY: str  # type: str
+
+DEBUG = False
+
+ALLOWED_HOSTS: list  # type: list[str]
+
+DATABASES: dict  # type: dict[str, dict[str, str]]
+
+
+def fetch_secret():
+    import sys
+    import json
+    defaults = {
+        'ALLOWED_HOSTS': ['*'],
+        'DATABASES': {'default': {'ENGINE': 'django.db.backends.sqlite3',
+                                  'NAME': str(BASE_DIR / 'db.sqlite3')}},
+        'SECRET_KEY': 'warning!-overwrite-this-secret-key-to-your-own-value'
+    }
+    try:
+        with open(BASE_DIR / 'secret.json', 'r') as fd:
+            globals().update(json.load(fd))
+            globals().setdefault('DATABASES', defaults['DATABASES'])
+    except FileNotFoundError as exc:
+        if __name__ == '__main__' or (sys.stdin.isatty() and input(
+                "[Error] In Production mode, secret.json is required but not found. do you want to create it? [y/n]: "
+        ).lower() in ('y', 'yes')):
+            with open(BASE_DIR / 'secret.json', 'w') as fd:
+                json.dump(defaults, fd, indent=2)
+            globals().update(defaults)
+        else:
+            raise RuntimeError("secret.json is required for gunicorn production environment.") from exc
+
+
+fetch_secret()
+del fetch_secret

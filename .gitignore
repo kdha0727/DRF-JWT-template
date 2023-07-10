@@ -1,0 +1,29 @@
+# iltellij related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# vscode related
+.vscode/
+
+# virtual environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# python
+*.pyc
+**/__pycache__/
+__pycache__/
+
+# django default
+db.sqlite3
+
+# django
+secret.json
+attachment
